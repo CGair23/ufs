@@ -1,0 +1,19 @@
+# === DEFAULT CONFIG ===
+# This file includes default values that will be overwritten
+# by the runtime config (local.toml) or environment variables
+
+[server_config]
+# Server host name
+host = "127.0.0.1"
+# Socket address to bind
+ip = "[::]"
+# Port that should be listened on
+port = 8080
+
+[tls_config]
+# Enable/disable TLS
+enabled = false
+# Path to the certificate file
+certificate_path = "tls/cert.pem"
+# Path to the key file
+key_path  = "tls/key.pem"
