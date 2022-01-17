@@ -1,0 +1,12 @@
+[package]
+name = "ufs"
+version = "0.1.0"
+edition = "2018"
+
+# See more keys and their definitions at https://doc.rust-lang.org/cargo/reference/manifest.html
+
+[dependencies]
+tokio           = { version = "1.15.0", features = ["fs", "rt-multi-thread", "macros", "io-std"] }
+env_logger      = { version = "0.7.1" }
+log             = { version = "0.4.6", features = ["release_max_level_info"] }
+anyhow          = { version = "1.0.52" }
