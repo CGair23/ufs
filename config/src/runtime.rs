@@ -2,7 +2,7 @@
 //! The configuration is first loaded from `config/default.toml` and
 //! then overwritten by the values in `config/local.toml`.
 use std::path::Path;
-use anyhow::Result;
+use anyhow::{Result, Context};
 use std::fs;
 
 use serde::Deserialize;
@@ -30,13 +30,39 @@ pub struct TlsConfig {
     pub key_path: Option<String>,
 }
 
-impl ServerConfig {
+impl RuntimeConfig {
     pub fn from_toml<T: AsRef<Path>>(path: T) -> Result<Self> {
         let contents = fs::read_to_string(path.as_ref())
             .context("Something went wrong when reading the runtime config file")?;
         let config: RuntimeConfig = 
             toml::from_str(&contents).context("Cannot parse the runtime config file")?;
         Ok(config)
+    }
+
+    pub fn server_host(&mut self, host: String) {
+        self.server_config.server_host(host);
+    }
+
+    pub fn server_ip(&mut self, ip: String) {
+        self.server_config.server_ip(ip);
+    }
+
+    pub fn server_port(&mut self, port: u32) {
+        self.server_config.server_port(port);
+    }
+}
+
+impl ServerConfig {
+    pub fn server_host(&mut self, host: String) {
+        self.host = host;
+    }
+
+    pub fn server_ip(&mut self, ip: String) {
+        self.ip = ip;
+    }
+
+    pub fn server_port(&mut self, port: u32) {
+        self.port = port;
     }
 }
 
