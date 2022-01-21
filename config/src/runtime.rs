@@ -12,6 +12,7 @@ use serde::Deserialize;
 pub struct RuntimeConfig {
     pub server_config: ServerConfig,
     // pub tls_config: TlsConfig,
+    pub fs_root: String
 }
 
 /// Configurations for the http server.
@@ -19,7 +20,7 @@ pub struct RuntimeConfig {
 pub struct ServerConfig {
     pub host: String,
     pub ip: String,
-    pub port: u32,
+    pub port: u16,
 }
 
 /// Configurations for tls.
@@ -47,7 +48,7 @@ impl RuntimeConfig {
         self.server_config.server_ip(ip);
     }
 
-    pub fn server_port(&mut self, port: u32) {
+    pub fn server_port(&mut self, port: u16) {
         self.server_config.server_port(port);
     }
 }
@@ -61,7 +62,7 @@ impl ServerConfig {
         self.ip = ip;
     }
 
-    pub fn server_port(&mut self, port: u32) {
+    pub fn server_port(&mut self, port: u16) {
         self.port = port;
     }
 }
@@ -74,15 +75,19 @@ mod tests {
         let config: RuntimeConfig = toml::from_str(r#"
             title = 'TOML Example'
 
+            fs_root = "SMLNODE/fs"
+
             [server_config]
             host = "xxxxxxxxxxxxxxxxx"
             ip = "127.0.0.1"
             port = 8080
 
             [tls_config]
+            enabled = false
         "#).unwrap();
         assert_eq!(config.server_config.ip, "127.0.0.1");
         assert_eq!(config.server_config.host, "xxxxxxxxxxxxxxxxx");
         assert_eq!(config.server_config.port, 8080);
+        assert_eq!(config.fs_root, "SMLNODE/fs");
     }
 }
