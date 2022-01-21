@@ -2,11 +2,13 @@
 # This file includes default values that will be overwritten
 # by the runtime config (local.toml) or environment variables
 
+fs_root = "SMLNODE/fs"
+
 [server_config]
 # Server host name
 host = "127.0.0.1"
 # Socket address to bind
-ip = "[::]"
+ip = "127.0.0.1"
 # Port that should be listened on
 port = 8080
 
