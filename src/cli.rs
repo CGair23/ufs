@@ -34,10 +34,10 @@ pub struct UploadOpt {
 pub struct StartOpt {
     #[structopt(short, long, default_value = "127.0.0.1")]
     pub host: String,
-    #[structopt(short, long = "ip-address", default_value = "[::]")]
+    #[structopt(short, long = "ip-address", default_value = "127.0.0.1")]
     pub ip: String,
     #[structopt(short, long, default_value = "8080")]
-    pub port: u32,
-    #[structopt(short, long, default_value = "DEFAULT_CONF_PATH")]
+    pub port: u16,
+    #[structopt(short, long, default_value = DEFAULT_CONF_PATH)]
     pub config: String,
 }
