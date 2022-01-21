@@ -10,3 +10,12 @@ tokio           = { version = "1.15.0", features = ["fs", "rt-multi-thread", "ma
 env_logger      = { version = "0.7.1" }
 log             = { version = "0.4.6", features = ["release_max_level_info"] }
 anyhow          = { version = "1.0.52" }
+structopt       = { version = "0.3" }
+num_cpus        = { version = "1.13.1" }
+hyper           = { version = "0.14", features = ["stream", "http1", "http2", "tcp", "server", "client"] }
+uuid            = { version = "0.8", features = ["serde", "v4"] }
+# routerify = "3"
+routerify-multipart = "3"
+bytes = "1.0.0"
+
+config          = { path = "./config" }
