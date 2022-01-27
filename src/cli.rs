@@ -1,5 +1,4 @@
 use structopt::StructOpt;
-use std::path::PathBuf;
 use crate::DEFAULT_CONF_PATH;
 
 #[derive(Debug, StructOpt)]
@@ -24,10 +23,15 @@ pub enum Command {
 pub struct UploadOpt {
     #[structopt(short, long = "ip-address")]
     pub ip: String,
+
     #[structopt(short, long)]
-    pub port: u32,
+    pub port: u16,
+
     #[structopt(short = "f", long = "file-path")]
-    pub file: PathBuf,
+    pub file: String,
+
+    #[structopt(short = "t", long = "task-id")]
+    pub task: String,
 }
 
 #[derive(Debug, StructOpt)]
