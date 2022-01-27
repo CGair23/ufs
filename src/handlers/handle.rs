@@ -80,7 +80,10 @@ async fn save_file<P: AsRef<Path> + ToString + Display>(
     // if !overwrite_files && file_path.exists() { DuplicateFileError }
     // let file_uuid = Uuid::new_v4();
     let fs_root_dir_string = fs_root_dir.to_string();
+    let file_dir = format!("{}/{}", fs_root_dir_string, subdir);
+    tokio::fs::create_dir(file_dir).await?;
     let file_path = format!("{}/{}/{}", fs_root_dir_string, subdir, file_name);
+    log::debug!("Create file: {}", file_path);
     let mut file = File::create(file_path).await?;
     file.write_all(&chunk).await?;
     Ok(())
