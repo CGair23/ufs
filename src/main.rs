@@ -16,6 +16,7 @@ use hyper::header::CONTENT_TYPE;
 
 use std::io::Write;
 use std::path::Path;
+use std::fmt::Display;
 
 const DEFAULT_CONF_PATH: &str = "./config/default.toml";
 const PACKAGE_NAME: &str = env!("CARGO_PKG_NAME");
@@ -45,9 +46,9 @@ fn main() -> Result<()>{
 
         Command::Start(opt) => {
             let mut config = RuntimeConfig::from_toml(DEFAULT_CONF_PATH)?;
-            config.server_host(opt.host);
-            config.server_ip(opt.ip);
-            config.server_port(opt.port);
+            // config.server_host(opt.host);
+            // config.server_ip(opt.ip);
+            // config.server_port(opt.port);
             Server::new(config).run()?;
         }
     }
@@ -57,7 +58,8 @@ fn main() -> Result<()>{
 
 async fn send_file(opt: UploadOpt) -> Result<()>{
     let upload_path = opt.file;
-    let data = file_data(upload_path).await?;
+    let task_id = opt.task;
+    let data = file_data(upload_path, task_id).await?;
 
     let uri = format!("http://{}:{}", opt.ip, opt.port);
     let req = Request::post(uri)
@@ -80,10 +82,14 @@ async fn send_file(opt: UploadOpt) -> Result<()>{
     Ok(())
 }
 
-async fn file_data<P: AsRef<Path>>(path: P) -> Result<Vec<u8>> {
+async fn file_data<P: AsRef<Path> + ToString + Display>(path: P, task_id: String) -> Result<Vec<u8>> {
     let mut result = Vec::new();
     write!(result, "--{}\r\n", BOUNDARY)?;
-    write!(result, "Content-Disposition: form-data; name=\"file\"; filename=\"upload.txt\"\r\n")?;
+    let file_name_with_task = format!("{}{}", task_id, path.to_string());
+    let fmt_content_disp = format!("{} {}{}{}", "Content-Disposition: form-data; name=\"file\";", "filename=\"", file_name_with_task, "\"\r\n");
+    log::debug!("{}", fmt_content_disp);
+    // write!(result, "Content-Disposition: form-data; name=\"file\"; filename=\"upload.txt\"\r\n")?;
+    write!(result, "{}", fmt_content_disp)?;
     write!(result, "Content-Type: text/plain\r\n")?;
     write!(result, "\r\n")?;
     let mut file = fs::File::open(path).await?;
