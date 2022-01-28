@@ -18,7 +18,7 @@ use std::io::Write;
 use std::path::Path;
 use std::fmt::Display;
 
-const DEFAULT_CONF_PATH: &str = "./config/default.toml";
+const DEFAULT_CONF_PATH: &str = "/ufs/config/default.toml";
 const PACKAGE_NAME: &str = env!("CARGO_PKG_NAME");
 const BOUNDARY: &'static str = "------------------------ea3bbcf87c101592";
 
