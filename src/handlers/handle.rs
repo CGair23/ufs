@@ -3,7 +3,7 @@ use hyper::{Request, Response, Body, Method, StatusCode};
 use routerify_multipart::RequestMultipartExt;   // Import `RequestMultipartExt` trait.
 use bytes::Bytes;
 // use uuid::Uuid;
-use tokio::{fs::File, io::AsyncWriteExt};
+use tokio::{fs::File, fs::OpenOptions, io::AsyncWriteExt};
 use std::fmt::Display;
 use std::path::Path;
 use std::sync::Arc;
@@ -40,7 +40,7 @@ pub async fn upload_service<P: AsRef<Path> + ToString + Display>(
     let mut response = Response::builder()
         .status(StatusCode::OK)
         .body(Body::empty())?;
-    if let Some(mut field) = (&mut multipart).next_field().await? {
+    while let Some(mut field) = (&mut multipart).next_field().await? {
         // Get field name.
         let name = field.name().expect("Name");
         // Get the field's filename if provided in "Content-Disposition" header.
@@ -48,22 +48,38 @@ pub async fn upload_service<P: AsRef<Path> + ToString + Display>(
         log::debug!("Name: {:?}, File Name: {:?}", name, file_name);
 
         let (subdir, file_name) = get_subdir_and_name(file_name, "/")?;
+        let file = create_file(fs_root_dir.clone(), subdir.clone(), file_name.clone()).await?;
 
         // Process the field data chunks e.g. store them in a file.
-        if let Some(chunk) = field.chunk().await? {
+        while let Some(chunk) = field.chunk().await? {
             // Do something with field chunk.
             log::debug!("Chunk: {:?}", chunk);
-            save_file(chunk, fs_root_dir, subdir, file_name).await?;
-        }else {
-            *response.status_mut() = StatusCode::BAD_REQUEST;
-            // TODO: update body
+            save_file(chunk, file.clone()).await?;
         }
-    }else {
-        *response.status_mut() = StatusCode::BAD_REQUEST;
-        // TODO: update body
     }
     Ok(response)
 
+}
+
+/// Create file
+async fn create_file<P: AsRef<Path> + ToString + Display>(
+    fs_root_dir: Arc<P>,
+    subdir: String,
+    file_name: String
+) -> Result<String> {
+    let fs_root_dir_string = fs_root_dir.to_string();
+    let file_dir = format!("{}/{}", fs_root_dir_string, subdir);
+    let file_path = format!("{}/{}", file_dir, file_name);
+    let file = file_path.clone();
+    if !path_exists(&file_dir) {
+        tokio::fs::create_dir(file_dir).await?;
+    }
+    if !path_exists(&file_path) {
+        log::debug!("Create file: {}", file_path);
+        File::create(file_path).await?;
+    }
+
+    Ok(file)
 }
 
 /// Saves file data from , optionally overwriting
@@ -72,19 +88,17 @@ pub async fn upload_service<P: AsRef<Path> + ToString + Display>(
 /// Returns total bytes written to file.
 async fn save_file<P: AsRef<Path> + ToString + Display>(
     chunk: Bytes,
-    fs_root_dir: Arc<P>,
-    subdir: String,
-    file_name: String
+    file: P,
     // overwrite_files: bool,
 ) -> Result<()> {
     // if !overwrite_files && file_path.exists() { DuplicateFileError }
     // let file_uuid = Uuid::new_v4();
-    let fs_root_dir_string = fs_root_dir.to_string();
-    let file_dir = format!("{}/{}", fs_root_dir_string, subdir);
-    tokio::fs::create_dir(file_dir).await?;
-    let file_path = format!("{}/{}/{}", fs_root_dir_string, subdir, file_name);
-    log::debug!("Create file: {}", file_path);
-    let mut file = File::create(file_path).await?;
+    let mut file = OpenOptions::new()
+        .read(true)
+        .write(true)
+        .append(true)
+        .open(file)
+        .await?;
     file.write_all(&chunk).await?;
     Ok(())
 }
@@ -94,6 +108,10 @@ fn get_subdir_and_name(s: &str, separator: &str) -> anyhow::Result<(String, Stri
     let subdir = strings.get(0).unwrap();
     let name = strings.last().unwrap();
     Ok((subdir.to_string(), name.to_string()))
+}
+
+fn path_exists(path: &str) -> bool {
+    std::fs::metadata(path).is_ok()
 }
 
 // Handles a single field in a multipart form
